@@ -415,7 +415,15 @@
             // Process Bills
             let billHtmlHome = '';
             let billHtmlMenu = '';
-            currentProf.bills.forEach(b => {
+
+            const sortedBills = [...currentProf.bills].sort((a, b) => {
+                if (!a.date && !b.date) return 0;
+                if (!a.date) return 1; // Bills with no date go to the bottom
+                if (!b.date) return -1;
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            sortedBills.forEach(b => {
                 totals.bills += b.amount;
                 const isPaid = b.paid === true;
                 const dotColor = isPaid ? '#2ecc71' : '#ff4444';
@@ -513,10 +521,42 @@
 
         function downloadCSV() {
             const currentProf = appData.profiles[appData.activeProfileIndex];
-            let csv = "Type,Name/Category,Amount,Date\n";
-            csv += `PROFILE,${currentProf.name},Goal,${currentProf.goal}\n`;
-            currentProf.transactions.forEach(t => csv += `${t.type},Transaction,${t.amount},${t.date}\n`);
-            currentProf.bills.forEach(b => csv += `Bill,${b.name},${b.amount},${b.date}\n`);
+            // New Structured Header
+            let csv = "Date,Description,Earning ($),Gas Expense ($),Bill ($),Status\n";
+            
+            let allData = [];
+            
+            // Collect Transactions
+            currentProf.transactions.forEach(t => {
+                allData.push({
+                    date: t.date,
+                    desc: t.type.toUpperCase(),
+                    earn: t.type === 'income' ? t.amount : '',
+                    gas: t.type === 'gas' ? t.amount : '',
+                    bill: '',
+                    status: '-'
+                });
+            });
+            
+            // Collect Bills
+            currentProf.bills.forEach(b => {
+                allData.push({
+                    date: b.date || 'N/A',
+                    desc: b.name,
+                    earn: '',
+                    gas: '',
+                    bill: b.amount,
+                    status: b.paid ? 'PAID' : 'UNPAID'
+                });
+            });
+
+            // Sort entries by date
+            allData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Build CSV rows
+            allData.forEach(row => {
+                csv += `${row.date},"${row.desc}",${row.earn},${row.gas},${row.bill},${row.status}\n`;
+            });
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
