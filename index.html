@@ -120,6 +120,11 @@
         <div id="groc-content" class="list-content"></div>
 
         <p style="font-size: 12px; color: #777; margin-top: 20px;">BILLS & PAYMENTS</p>
+        <div style="background-color: #d8cece; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-top: 8px; margin-bottom: 10px; color: #333;">
+            <div style="color: #ff4444;">PAID: <span id="disp-bill-paid">$0</span></div>
+            <div>TOTAL: <span id="disp-bill-total">$0</span></div>
+            <div>REMAINING: <span id="disp-bill-remain">$0</span></div>
+        </div>
         <div id="bill-container"></div>
     </div>
 
@@ -396,7 +401,7 @@
             document.getElementById('disp-goal').innerText = currentProf.goal.toLocaleString();
 
             // Calculate Totals
-            const totals = { income: 0, gas: 0, grocery: 0, bills: 0 };
+            const totals = { income: 0, gas: 0, grocery: 0, bills: 0, paidBills: 0, unpaidBills: 0 };
             
             // Process Transactions
             const lists = { income: '', gas: '', grocery: '' };
@@ -425,6 +430,11 @@
 
             sortedBills.forEach(b => {
                 totals.bills += b.amount;
+                if (b.paid) {
+                    totals.paidBills += b.amount;
+                } else {
+                    totals.unpaidBills += b.amount;
+                }
                 const isPaid = b.paid === true;
                 const dotColor = isPaid ? '#2ecc71' : '#ff4444';
                 
@@ -471,6 +481,10 @@
             document.getElementById('total-gas').innerText = "$" + totals.gas.toLocaleString();
             document.getElementById('total-groc').innerText = "$" + totals.grocery.toLocaleString();
             
+            document.getElementById('disp-bill-paid').innerText = "$" + totals.paidBills.toLocaleString();
+            document.getElementById('disp-bill-total').innerText = "$" + totals.bills.toLocaleString();
+            document.getElementById('disp-bill-remain').innerText = "$" + totals.unpaidBills.toLocaleString();
+
             document.getElementById('earn-content').innerHTML = lists.income || 'No data';
             document.getElementById('gas-content').innerHTML = lists.gas || 'No data';
             document.getElementById('groc-content').innerHTML = lists.grocery || 'No data';
@@ -481,8 +495,14 @@
             const savings = totals.income - (totals.gas + totals.grocery + totals.bills);
             const targetLeft = currentProf.goal - totals.income;
             
-            // Simple daily need: (Goal / 30 days) - simplified for example
-            const daily = targetLeft > 0 ? (targetLeft / 30).toFixed(2) : 0;
+            // Calculate remaining days in the current month
+            const today = new Date();
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            let remainingDays = daysInMonth - today.getDate() + 1; // +1 includes today
+            if (remainingDays <= 0) remainingDays = 1; // Prevent division by zero
+            
+            // Dynamic daily need based on remaining days
+            const daily = targetLeft > 0 ? (targetLeft / remainingDays).toFixed(2) : 0;
 
             document.getElementById('disp-savings').innerText = "SAVINGS: $" + savings.toLocaleString();
             document.getElementById('disp-left').innerText = "$" + (targetLeft > 0 ? targetLeft.toLocaleString() : "0");
