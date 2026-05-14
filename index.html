@@ -162,6 +162,7 @@
             </div>
 
             <button class="btn-save" onclick="processData()">SAVE & UPDATE</button>
+            <button class="btn-csv" style="background: #2ecc71;" onclick="toggleReport()">VIEW REPORT</button>
             <button class="btn-csv" onclick="downloadCSV()">DOWNLOAD CSV REPORT</button>
 
             <p class="close-btn" onclick="toggleMenu()">CLOSE MENU</p>
@@ -189,6 +190,30 @@
                 <button class="btn-csv" style="background: #ff4444; margin-top: 20px;" onclick="resetProfile()">RESET ALL DATA</button>
             </div>
             <p class="close-btn" onclick="toggleProfile()">CLOSE PROFILE</p>
+        </div>
+    </div>
+
+    <div id="report-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
+        <div class="menu-content" style="max-width: 600px; width: 95%;">
+            <div class="close-x" onclick="toggleReport()">&times;</div>
+            <h2 style="text-align: center; margin-bottom: 20px;">REPORT</h2>
+            <div style="background: white; color: black; padding: 10px; border-radius: 8px; font-size: 13px; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #333;">
+                            <th style="padding: 5px;">Date</th>
+                            <th style="padding: 5px;">Earning</th>
+                            <th style="padding: 5px;">Gas</th>
+                            <th style="padding: 5px;">Grocery</th>
+                            <th style="padding: 5px;">Paid Bill</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body">
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn-csv" style="background: #add8e6; color: #222; font-weight: bold; margin-top: 20px;" onclick="downloadCSV()">DOWNLOAD CSV</button>
+            <p class="close-btn" onclick="toggleReport()">CLOSE REPORT</p>
         </div>
     </div>
 
@@ -326,6 +351,17 @@
         function toggleList(id) {
             const el = document.getElementById(id);
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function toggleReport() {
+            const report = document.getElementById('report-overlay');
+            if (report.style.display === 'flex') {
+                report.style.display = 'none';
+            } else {
+                renderReportTable();
+                report.style.display = 'flex';
+                document.getElementById('menu-overlay').style.display = 'none';
+            }
         }
 
         function saveData() {
@@ -539,43 +575,62 @@
             }
         }
 
-        function downloadCSV() {
+        function generateReportData() {
             const currentProf = appData.profiles[appData.activeProfileIndex];
-            // New Structured Header
-            let csv = "Date,Description,Earning ($),Gas Expense ($),Bill ($),Status\n";
-            
-            let allData = [];
-            
-            // Collect Transactions
+            let reportMap = {};
+
             currentProf.transactions.forEach(t => {
-                allData.push({
-                    date: t.date,
-                    desc: t.type.toUpperCase(),
-                    earn: t.type === 'income' ? t.amount : '',
-                    gas: t.type === 'gas' ? t.amount : '',
-                    bill: '',
-                    status: '-'
-                });
+                if (!reportMap[t.date]) {
+                    reportMap[t.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                }
+                if (t.type === 'income') reportMap[t.date].earn += t.amount;
+                if (t.type === 'gas') reportMap[t.date].gas += t.amount;
+                if (t.type === 'grocery') reportMap[t.date].grocery += t.amount;
             });
             
-            // Collect Bills
             currentProf.bills.forEach(b => {
-                allData.push({
-                    date: b.date || 'N/A',
-                    desc: b.name,
-                    earn: '',
-                    gas: '',
-                    bill: b.amount,
-                    status: b.paid ? 'PAID' : 'UNPAID'
-                });
+                if (b.paid && b.date) {
+                    if (!reportMap[b.date]) {
+                        reportMap[b.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                    }
+                    reportMap[b.date].paidBill += b.amount;
+                }
             });
 
-            // Sort entries by date
-            allData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            let sortedDates = Object.keys(reportMap).sort((a, b) => new Date(a) - new Date(b));
+            return sortedDates.map(date => ({
+                date: date,
+                earn: reportMap[date].earn,
+                gas: reportMap[date].gas,
+                grocery: reportMap[date].grocery,
+                paidBill: reportMap[date].paidBill
+            }));
+        }
 
-            // Build CSV rows
-            allData.forEach(row => {
-                csv += `${row.date},"${row.desc}",${row.earn},${row.gas},${row.bill},${row.status}\n`;
+        function renderReportTable() {
+            const reportData = generateReportData();
+            let html = '';
+            reportData.forEach(row => {
+                html += `<tr style="border-bottom: 1px solid #ccc;">
+                    <td style="padding: 5px;">${row.date}</td>
+                    <td style="padding: 5px;">${row.earn}</td>
+                    <td style="padding: 5px;">${row.gas}</td>
+                    <td style="padding: 5px;">${row.grocery}</td>
+                    <td style="padding: 5px;">${row.paidBill}</td>
+                </tr>`;
+            });
+            if (reportData.length === 0) {
+                html = '<tr><td colspan="5" style="text-align:center; padding: 10px;">No data available</td></tr>';
+            }
+            document.getElementById('report-table-body').innerHTML = html;
+        }
+
+        function downloadCSV() {
+            const reportData = generateReportData();
+            let csv = "Date,Earning,Gas,Grocery,Paid Bill Amount\n";
+            
+            reportData.forEach(row => {
+                csv += `${row.date},${row.earn},${row.gas},${row.grocery},${row.paidBill}\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
