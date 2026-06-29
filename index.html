@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget App - Home</title>
+
+    <!-- App Icons for "Add to Home Screen" -->
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f0f0f0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -36,6 +41,9 @@
         .list-content { display: none; background: #fafafa; padding: 10px; border-radius: 0 0 8px 8px; margin-bottom: 10px; border: 1px solid #eee; }
         .history-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #eee; }
         .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 2px 5px; font-size: 14px; }
+        .del-btn-edit { color: #f0ad4e; }
+        .bill-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
         .btn-clear { width: 100%; padding: 8px; background: #f0ad4e; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold; }
 
         /* Bill Card */
@@ -66,9 +74,46 @@
         .remember-me { display: flex; align-items: center; font-size: 13px; color: #555; margin-bottom: 15px; cursor: pointer; }
         .remember-me input { width: auto; margin-right: 8px; margin-bottom: 0; }
     </style>
+    <style>
+        /* Ad Space Placeholder */
+        .ad-space {
+            background: #e0e0e0;
+            border: 1px dashed #999;
+            padding: 20px;
+            margin: 20px 0; /* Add some space above and below */
+            text-align: center;
+            color: #777;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+    </style>
+    <style>
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #add8e6; /* Same as header */
+            z-index: 3000; /* Higher than auth screen */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-logo {
+            width: 80%;
+            max-width: 400px; /* Allow the full logo to be visible */
+            height: auto;
+            /* The logo image itself has styling, so we don't need extra shadows or borders here */
+        }
+    </style>
 </head>
 <body>
-
+    <div id="splash-screen">
+        <img src="logo.png" alt="App Logo" class="splash-logo">
+    </div>
     <div id="auth-screen">
         <div class="auth-container">
             <div class="auth-tabs">
@@ -135,6 +180,10 @@
             CREDIT HISTORY
         </div>
         <div id="credit-history-content" class="list-content" style="padding: 0;"></div>
+
+        <div class="ad-space">
+            <p>Advertisement Space</p>
+        </div>
 
     </div>
 
@@ -516,6 +565,12 @@
             document.getElementById('profile-overlay').style.display = 'none';
         }
 
+        function sanitize(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
         function render() {
             const currentProf = appData.profiles[appData.activeProfileIndex];
             if (!currentProf.creditHistory) currentProf.creditHistory = []; // Ensure creditHistory exists
@@ -591,7 +646,7 @@
                     <div class="bill-card" style="font-size: 13px;">
                         <div onclick="toggleBillStatus(${b.id})" style="cursor:pointer; flex: 1; display: flex; align-items: center;">
                             <span class="status-dot" style="background: ${dotColor}; margin-right: 10px;"></span> 
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</span>
+                            <span class="bill-name">${sanitize(b.name)}</span>
                         </div>
                         <div style="flex: 1; text-align: center; color: #777; font-size: 11px;">
                             ${dueDisplay}
@@ -604,7 +659,7 @@
 
                 billHtmlMenu += `
                     <div style="display:flex; justify-content:space-between; font-size:11px; padding:5px; border-bottom:1px solid #444; align-items:center;">
-                        <span>${b.name} ($${b.amount})</span>
+                        <span>${sanitize(b.name)} ($${b.amount})</span>
                         <span onclick="toggleBillStatus(${b.id})" style="color:${dotColor}; cursor:pointer; font-weight:bold; font-size: 9px; text-transform: uppercase;">
                             ${isPaid ? 'Paid' : 'Unpaid'}
                         </span>
@@ -617,9 +672,9 @@
                 creditHistoryHtml += `
                     <div class="bill-card" style="flex-direction: column; align-items: stretch; font-size: 12px; margin: 10px; padding: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px;">
-                            <span>${c.name}</span>
+                            <span>${sanitize(c.name)}</span>
                             <div>
-                                <span class="del-btn" onclick="editCreditHistory(${c.id})" style="color: #f0ad4e;">✎</span>
+                                <span class="del-btn del-btn-edit" onclick="editCreditHistory(${c.id})">✎</span>
                                 <span class="del-btn" onclick="deleteCreditHistory(${c.id})">✕</span>
                             </div>
                         </div>
@@ -919,12 +974,20 @@
         }
 
         window.onload = function() {
+            const splash = document.getElementById('splash-screen');
             const isLoggedIn = localStorage.getItem('budget_session') || sessionStorage.getItem('budget_session');
+            
+            // Hide splash screen after 3 seconds
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                // Remove from DOM after transition
+                setTimeout(() => splash.style.display = 'none', 500); 
+            }, 3000);
+
             if (!isLoggedIn) {
                 document.getElementById('auth-screen').style.display = 'flex';
                 renderAuthForm();
             } else {
-                document.getElementById('auth-screen').style.display = 'none';
             }
             render();
         };
