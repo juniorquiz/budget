@@ -36,6 +36,7 @@
         .list-content { display: none; background: #fafafa; padding: 10px; border-radius: 0 0 8px 8px; margin-bottom: 10px; border: 1px solid #eee; }
         .history-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #eee; }
         .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 2px 5px; font-size: 14px; }
+        .btn-clear { width: 100%; padding: 8px; background: #f0ad4e; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold; }
 
         /* Bill Card */
         .bill-card { background: white; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -119,13 +120,22 @@
         </div>
         <div id="groc-content" class="list-content"></div>
 
-        <p style="font-size: 12px; color: #777; margin-top: 20px;">BILLS & PAYMENTS</p>
-        <div style="background-color: #d8cece; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-top: 8px; margin-bottom: 10px; color: #333;">
-            <div style="color: #ff4444;">PAID: <span id="disp-bill-paid">$0</span></div>
-            <div>TOTAL: <span id="disp-bill-total">$0</span></div>
-            <div>REMAINING: <span id="disp-bill-remain">$0</span></div>
+        <div class="list-header" onclick="toggleList('bill-content')">
+            BILLS & PAYMENTS (TOTAL) <span id="disp-bill-total">$0</span>
         </div>
-        <div id="bill-container"></div>
+        <div id="bill-content" class="list-content">
+            <div style="background-color: #d8cece; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #333;">
+                <div style="color: #ff4444;">PAID: <span id="disp-bill-paid">$0</span></div>
+                <div>REMAINING: <span id="disp-bill-remain">$0</span></div>
+            </div>
+            <div id="bill-container"></div>
+        </div>
+
+        <div class="list-header" onclick="toggleList('credit-history-content')">
+            CREDIT HISTORY
+        </div>
+        <div id="credit-history-content" class="list-content" style="padding: 0;"></div>
+
     </div>
 
     <div id="menu-overlay">
@@ -163,6 +173,7 @@
 
             <button class="btn-save" onclick="processData()">SAVE & UPDATE</button>
             <button class="btn-csv" style="background: #2ecc71;" onclick="toggleReport()">VIEW REPORT</button>
+            <button class="btn-csv" style="background: #f0ad4e; color: white;" onclick="togglePayoffCalc()">PAYOFF CALCULATOR</button>
             <button class="btn-csv" onclick="downloadCSV()">DOWNLOAD CSV REPORT</button>
 
             <p class="close-btn" onclick="toggleMenu()">CLOSE MENU</p>
@@ -196,7 +207,12 @@
     <div id="report-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
         <div class="menu-content" style="max-width: 600px; width: 95%;">
             <div class="close-x" onclick="toggleReport()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 20px;">REPORT</h2>
+            <h2 style="text-align: center; margin-bottom: 5px;">REPORT</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #333; padding: 8px; border-radius: 8px;">
+                <button onclick="changeReportMonth(-1)" style="background: #555; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">&lt; Prev</button>
+                <div id="report-month-display" style="font-weight: bold; font-size: 14px;"></div>
+                <button onclick="changeReportMonth(1)" style="background: #555; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Next &gt;</button>
+            </div>
             <div style="background: white; color: black; padding: 10px; border-radius: 8px; font-size: 13px; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
@@ -217,15 +233,70 @@
         </div>
     </div>
 
+    <div id="payoff-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
+        <div class="menu-content" style="max-width: 450px; width: 95%;">
+            <div class="close-x" onclick="togglePayoffCalc()">&times;</div>
+            <h2 style="text-align: center; margin-bottom: 20px;">CREDIT PAYOFF CALCULATOR</h2>
+            
+            <div class="input-group">
+                <label>Credit Account Name</label>
+                <input type="text" id="calc-credit-name" placeholder="e.g. Chase Sapphire">
+            </div>
+
+            <div class="input-group">
+                <label>Total Debt Amount ($)</label>
+                <input type="number" id="calc-debt-amt" placeholder="e.g. 5000">
+            </div>
+
+            <div class="input-group">
+                <label>Annual Interest Rate (%)</label>
+                <input type="number" id="calc-interest-rate" placeholder="e.g. 18.9">
+            </div>
+
+            <p style="text-align: center; font-size: 12px; color: #ccc; margin: 15px 0;">Monthly Payment is required. Payoff Time is optional for comparison.</p>
+
+            <div class="input-group">
+                <label>Your Monthly Payment ($)</label>
+                <input type="number" id="calc-monthly-payment" placeholder="e.g. 200">
+            </div>
+
+            <div class="input-group">
+                <label>Optional: Target Payoff Time (Months)</label>
+                <input type="number" id="calc-payoff-months" placeholder="e.g. 24">
+            </div>
+
+            <button class="btn-save" onclick="calculatePayoff()">CALCULATE</button>
+
+            <p class="close-btn" onclick="togglePayoffCalc()">CLOSE CALCULATOR</p>
+        </div>
+    </div>
+
+    <div id="suggestion-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="menu-content" style="max-width: 450px; width: 100%;">
+            <div class="close-x" onclick="closeSuggestion()">&times;</div>
+            <h2 style="text-align: center; margin-bottom: 20px;">PAYOFF RESULT</h2>
+            <div id="suggestion-content" style="background: #333; color: white; padding: 15px; border-radius: 10px; font-size: 14px; text-align: left; line-height: 1.6;">
+                <!-- Content will be injected by JS -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-save" style="flex: 1; background-color: #2ecc71;" onclick="savePayoff()">SAVE</button>
+                <p class="close-btn" style="flex: 1; margin: 0; padding: 15px; background: #444; border-radius: 10px;" onclick="closeSuggestion()">CLOSE</p>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let reportDate = new Date(); // For monthly report navigation
+        let lastPayoffResult = null; // To hold the latest payoff calculation for saving
+        let editingCreditHistoryId = null; // To track which credit history item is being edited
         // Initialize data from localStorage or defaults
         let appData = JSON.parse(localStorage.getItem('budgetData')) || {
             userName: "User",
             password: "",
             activeProfileIndex: 0,
             profiles: [
-                { name: "Main Profile 🟢", goal: 0, transactions: [], bills: [] },
-                { name: "2nd Profile (Vacation/Goal)", goal: 0, transactions: [], bills: [] }
+                { name: "Main Profile 🟢", goal: 0, transactions: [], bills: [], creditHistory: [] },
+                { name: "2nd Profile (Vacation/Goal)", goal: 0, transactions: [], bills: [], creditHistory: [] }
             ]
         };
 
@@ -236,8 +307,8 @@
                 password: appData.password || "",
                 activeProfileIndex: 0,
                 profiles: [
-                    { name: "Main Profile 🟢", goal: appData.goal || 0, transactions: appData.transactions || [], bills: appData.bills || [] },
-                    { name: "2nd Profile (Vacation/Goal)", goal: 0, transactions: [], bills: [] }
+                    { name: "Main Profile 🟢", goal: appData.goal || 0, transactions: appData.transactions || [], bills: appData.bills || [], creditHistory: appData.creditHistory || [] },
+                    { name: "2nd Profile (Vacation/Goal)", goal: 0, transactions: [], bills: [], creditHistory: [] }
                 ]
             };
             localStorage.setItem('budgetData', JSON.stringify(appData));
@@ -357,12 +428,33 @@
             const report = document.getElementById('report-overlay');
             if (report.style.display === 'flex') {
                 report.style.display = 'none';
+                reportDate = new Date(); // Reset to current month on close
             } else {
                 renderReportTable();
                 report.style.display = 'flex';
                 document.getElementById('menu-overlay').style.display = 'none';
             }
         }
+
+        function changeReportMonth(direction) {
+            reportDate.setMonth(reportDate.getMonth() + direction);
+            renderReportTable();
+        }
+
+        function togglePayoffCalc() {
+            const calc = document.getElementById('payoff-overlay');
+            calc.style.display = (calc.style.display === 'flex') ? 'none' : 'flex';
+            if (calc.style.display === 'none') {
+                editingCreditHistoryId = null; // Reset editing state when closing
+                document.querySelector('#payoff-overlay .btn-save').innerText = 'CALCULATE'; // Reset button text
+            }
+            document.getElementById('menu-overlay').style.display = 'none';
+        }
+
+        function closeSuggestion() {
+            document.getElementById('suggestion-overlay').style.display = 'none';
+        }
+
 
         function saveData() {
             localStorage.setItem('budgetData', JSON.stringify(appData));
@@ -399,7 +491,7 @@
                 document.getElementById('in-bill-amt').value = '';
                 document.getElementById('in-bill-status').value = 'unpaid';
             }
-            
+
             // Update Name
             const newName = document.getElementById('prof-name').value;
             if(newName) appData.userName = newName;
@@ -426,6 +518,7 @@
 
         function render() {
             const currentProf = appData.profiles[appData.activeProfileIndex];
+            if (!currentProf.creditHistory) currentProf.creditHistory = []; // Ensure creditHistory exists
 
             // Update Header/Goal
             document.getElementById('user-name').innerText = "Hello!!! " + appData.userName;
@@ -452,6 +545,12 @@
                         </div>
                     </div>`;
             });
+
+            // Add Clear buttons if there are transactions
+            if (currentProf.transactions.some(t => t.type === 'income')) lists.income += `<button class="btn-clear" onclick="clearTransactions('income')">Clear Earnings</button>`;
+            if (currentProf.transactions.some(t => t.type === 'gas')) lists.gas += `<button class="btn-clear" onclick="clearTransactions('gas')">Clear Gas</button>`;
+            if (currentProf.transactions.some(t => t.type === 'grocery')) lists.grocery += `<button class="btn-clear" onclick="clearTransactions('grocery')">Clear Grocery</button>`;
+
 
             // Process Bills
             let billHtmlHome = '';
@@ -512,13 +611,41 @@
                     </div>`;
             });
 
+            // Process Credit History
+            let creditHistoryHtml = '';
+            currentProf.creditHistory.forEach(c => {
+                creditHistoryHtml += `
+                    <div class="bill-card" style="flex-direction: column; align-items: stretch; font-size: 12px; margin: 10px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px;">
+                            <span>${c.name}</span>
+                            <div>
+                                <span class="del-btn" onclick="editCreditHistory(${c.id})" style="color: #f0ad4e;">✎</span>
+                                <span class="del-btn" onclick="deleteCreditHistory(${c.id})">✕</span>
+                            </div>
+                        </div>
+                        <div style="line-height: 1.6;">
+                            Original Debt: <b>$${c.debtAmount.toLocaleString()}</b><br>
+                            Monthly Payment: <b>$${c.monthlyPayment.toLocaleString()}</b><br>
+                            Payoff Time: <b>${c.payoffTime}</b><br>
+                            Total Interest: <b>$${c.totalInterest.toLocaleString()}</b><br>
+                            <small style="color: #777;">Saved on: ${c.savedDate}</small>
+                        </div>
+                        ${c.suggestion ? `
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; color: #f0ad4e; font-weight: bold;">
+                                Suggestion: ${c.suggestion}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
             // Update UI Strings
             document.getElementById('total-earn').innerText = "$" + totals.income.toLocaleString();
             document.getElementById('total-gas').innerText = "$" + totals.gas.toLocaleString();
             document.getElementById('total-groc').innerText = "$" + totals.grocery.toLocaleString();
             
             document.getElementById('disp-bill-paid').innerText = "$" + totals.paidBills.toLocaleString();
-            document.getElementById('disp-bill-total').innerText = "$" + totals.bills.toLocaleString();
+            document.getElementById('disp-bill-total').innerText = "$" + totals.bills.toLocaleString(); // This now updates the header
             document.getElementById('disp-bill-remain').innerText = "$" + totals.unpaidBills.toLocaleString();
 
             document.getElementById('earn-content').innerHTML = lists.income || 'No data';
@@ -526,6 +653,7 @@
             document.getElementById('groc-content').innerHTML = lists.grocery || 'No data';
             document.getElementById('bill-container').innerHTML = billHtmlHome || 'No bills added';
             document.getElementById('bill-menu-list').innerHTML = billHtmlMenu || '<p style="font-size:10px; color:#777; text-align:center;">No bills yet</p>';
+            document.getElementById('credit-history-content').innerHTML = creditHistoryHtml || '<p style="font-size:11px; color:#777; text-align:center; padding: 15px;">No credit history saved.</p>';
 
             // Calculations
             const savings = totals.income - (totals.gas + totals.grocery + totals.bills);
@@ -554,10 +682,47 @@
             }
         }
 
+        function clearTransactions(type) {
+            if (!confirm(`Are you sure you want to clear all ${type} entries?`)) return;
+            const currentProf = appData.profiles[appData.activeProfileIndex];
+            currentProf.transactions = currentProf.transactions.filter(t => t.type !== type);
+            saveData();
+            // Hide the list content after clearing
+            const contentId = (type === 'income' ? 'earn' : type) + '-content';
+            document.getElementById(contentId).style.display = 'none';
+        }
+
         function deleteTransaction(id) {
             if(!confirm("Delete this entry?")) return;
             const currentProf = appData.profiles[appData.activeProfileIndex];
             currentProf.transactions = currentProf.transactions.filter(t => t.id !== id);
+            saveData();
+        }
+
+        function editCreditHistory(id) {
+            const currentProf = appData.profiles[appData.activeProfileIndex];
+            const creditItem = currentProf.creditHistory.find(c => c.id === id);
+            if (!creditItem) return;
+
+            editingCreditHistoryId = id;
+
+            // Pre-fill the calculator with saved data
+            document.getElementById('calc-credit-name').value = creditItem.name;
+            document.getElementById('calc-debt-amt').value = creditItem.debtAmount;
+            document.getElementById('calc-interest-rate').value = creditItem.annualRate;
+            document.getElementById('calc-monthly-payment').value = creditItem.monthlyPayment;
+            document.getElementById('calc-payoff-months').value = creditItem.payoffMonths || '';
+
+            // Change button text to indicate an update
+            document.querySelector('#payoff-overlay .btn-save').innerText = 'RE-CALCULATE & UPDATE';
+
+            togglePayoffCalc();
+        }
+
+        function deleteCreditHistory(id) {
+            if(!confirm("Delete this credit history entry?")) return;
+            const currentProf = appData.profiles[appData.activeProfileIndex];
+            currentProf.creditHistory = currentProf.creditHistory.filter(c => c.id !== id);
             saveData();
         }
 
@@ -575,25 +740,34 @@
             }
         }
 
-        function generateReportData() {
+        function generateReportData(targetDate) {
             const currentProf = appData.profiles[appData.activeProfileIndex];
             let reportMap = {};
 
+            const targetYear = targetDate.getFullYear();
+            const targetMonth = targetDate.getMonth();
+
             currentProf.transactions.forEach(t => {
-                if (!reportMap[t.date]) {
-                    reportMap[t.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                const itemDate = new Date(t.date + 'T00:00:00');
+                if (itemDate.getFullYear() === targetYear && itemDate.getMonth() === targetMonth) {
+                    if (!reportMap[t.date]) {
+                        reportMap[t.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                    }
+                    if (t.type === 'income') reportMap[t.date].earn += t.amount;
+                    if (t.type === 'gas') reportMap[t.date].gas += t.amount;
+                    if (t.type === 'grocery') reportMap[t.date].grocery += t.amount;
                 }
-                if (t.type === 'income') reportMap[t.date].earn += t.amount;
-                if (t.type === 'gas') reportMap[t.date].gas += t.amount;
-                if (t.type === 'grocery') reportMap[t.date].grocery += t.amount;
             });
             
             currentProf.bills.forEach(b => {
                 if (b.paid && b.date) {
-                    if (!reportMap[b.date]) {
-                        reportMap[b.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                    const billDate = new Date(b.date + 'T00:00:00');
+                    if (billDate.getFullYear() === targetYear && billDate.getMonth() === targetMonth) {
+                        if (!reportMap[b.date]) {
+                            reportMap[b.date] = { earn: 0, gas: 0, grocery: 0, paidBill: 0 };
+                        }
+                        reportMap[b.date].paidBill += b.amount;
                     }
-                    reportMap[b.date].paidBill += b.amount;
                 }
             });
 
@@ -608,7 +782,10 @@
         }
 
         function renderReportTable() {
-            const reportData = generateReportData();
+            const monthName = reportDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            document.getElementById('report-month-display').innerText = monthName;
+
+            const reportData = generateReportData(reportDate);
             let html = '';
             reportData.forEach(row => {
                 html += `<tr style="border-bottom: 1px solid #ccc;">
@@ -626,7 +803,7 @@
         }
 
         function downloadCSV() {
-            const reportData = generateReportData();
+            const reportData = generateReportData(reportDate);
             let csv = "Date,Earning,Gas,Grocery,Paid Bill Amount\n";
             
             reportData.forEach(row => {
@@ -639,6 +816,106 @@
             a.setAttribute('href', url);
             a.setAttribute('download', 'budget_report.csv');
             a.click();
+        }
+
+        function calculatePayoff() {
+            const creditName = document.getElementById('calc-credit-name').value;
+            const P = parseFloat(document.getElementById('calc-debt-amt').value);
+            const annualRate = parseFloat(document.getElementById('calc-interest-rate').value);
+            const monthlyPayment = parseFloat(document.getElementById('calc-monthly-payment').value);
+            const payoffMonths = parseInt(document.getElementById('calc-payoff-months').value);
+
+            if (!P || !annualRate) {
+                alert("Please fill in the Debt Amount and Annual Interest Rate.");
+                return;
+            }
+
+            if (!monthlyPayment) {
+                alert("The Monthly Payment field is required.");
+                return;
+            }
+
+            const r = (annualRate / 100) / 12; // Monthly interest rate
+            
+            // Reset previous result
+            lastPayoffResult = null;
+            let resultHTML = '';
+            let payoffResultData = {
+                name: creditName || 'Unnamed Credit',
+                debtAmount: P,
+                monthlyPayment: monthlyPayment,
+                annualRate: annualRate,
+                payoffMonths: payoffMonths || null,
+                suggestion: ''
+            };
+
+            // Core Calculation: Calculate time based on the compulsory monthly payment.
+            if (monthlyPayment <= P * r) {
+                resultHTML = "<b>Result:</b><br>Your monthly payment is too low to cover the interest. The debt will never be paid off with this payment amount.";
+            } else {
+                const n = -Math.log(1 - (r * P) / monthlyPayment) / Math.log(1 + r);
+                const totalInterest = ((monthlyPayment * n) - P).toFixed(2);
+                const years = Math.floor(n / 12);
+                const months = Math.ceil(n % 12);
+                let timeString = (years > 0 ? `${years} year${years > 1 ? 's' : ''}` : '') + (months > 0 ? ` and ${months} month${months > 1 ? 's' : ''}` : '');
+                payoffResultData.payoffTime = timeString || 'Less than a month';
+                payoffResultData.totalInterest = parseFloat(totalInterest);
+
+                resultHTML = `<b>Result:</b><br>With a <b>$${monthlyPayment.toFixed(2)}</b> monthly payment, you will be debt-free in <b>${timeString}</b>.<br>Total interest paid will be <b>$${totalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.`;
+            }
+
+            // Optional Calculation: If a target payoff time is entered, calculate the required payment for it.
+            if (payoffMonths && payoffMonths > 0) {
+                const requiredPayment = P * (r * Math.pow(1 + r, payoffMonths)) / (Math.pow(1 + r, payoffMonths) - 1);
+                const goalTotalInterest = (requiredPayment * payoffMonths) - P;
+                const suggestionText = `To pay off in ${payoffMonths} months, pay $${requiredPayment.toFixed(2)}/mo.`;
+                payoffResultData.suggestion = suggestionText;
+                resultHTML += `<hr style="border-color: #555; margin: 10px 0;"><b style="color: #f0ad4e;">Goal Comparison:</b><br>${suggestionText}<br>Total interest paid would be <b>$${goalTotalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.`;
+            } else if (monthlyPayment > P * r) {
+                // Show the "pay off 1 year faster" suggestion only if the optional field is empty and the debt is payable.
+                const n = -Math.log(1 - (r * P) / monthlyPayment) / Math.log(1 + r);
+                const fasterN = n - 12;
+                if (fasterN > 0) {
+                    const fasterPayment = P * (r * Math.pow(1 + r, fasterN)) / (Math.pow(1 + r, fasterN) - 1);
+                    const suggestionText = `To pay off 1 year faster, pay $${fasterPayment.toFixed(2)}/mo.`;
+                    payoffResultData.suggestion = suggestionText;
+                    resultHTML += `<hr style="border-color: #555; margin: 10px 0;"><b style="color: #f0ad4e;">Suggestion:</b><br>${suggestionText}`;
+                }
+            }
+
+            const suggestionContent = document.getElementById('suggestion-content');
+            const suggestionOverlay = document.getElementById('suggestion-overlay');
+            suggestionContent.innerHTML = resultHTML;
+            if (payoffResultData.payoffTime) { // Only make it saveable if the calculation was successful
+                lastPayoffResult = payoffResultData;
+            }
+            suggestionOverlay.style.display = 'flex';
+        }
+
+        function savePayoff() {
+            if (!lastPayoffResult) {
+                alert("No calculation result to save.");
+                return;
+            }
+
+            const currentProf = appData.profiles[appData.activeProfileIndex];
+
+            if (editingCreditHistoryId) {
+                // Update existing item
+                const index = currentProf.creditHistory.findIndex(c => c.id === editingCreditHistoryId);
+                if (index !== -1) {
+                    const originalItem = currentProf.creditHistory[index];
+                    currentProf.creditHistory[index] = { ...originalItem, ...lastPayoffResult }; // Keep original ID and savedDate
+                    alert("Credit History item updated!");
+                }
+            } else {
+                // Save new item
+                const savedDate = new Date().toLocaleDateString();
+                currentProf.creditHistory.push({ ...lastPayoffResult, id: Date.now(), savedDate });
+                alert("Payoff details saved to your Credit History!");
+            }
+            saveData();
+            closeSuggestion();
         }
 
         window.onload = function() {
