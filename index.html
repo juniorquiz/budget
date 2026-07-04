@@ -8,329 +8,284 @@
     <!-- App Icons for "Add to Home Screen" -->
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
-
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f0f0f0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Header & Achievement */
-        header { background-color: #add8e6; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .menu-btn { font-size: 28px; cursor: pointer; color: white; }
-        .user-hello { color: #333; font-weight: bold; font-size: 14px; margin-right: 8px; }
-        
-        /* Profile Header Styles */
-        .header-right { display: flex; align-items: center; cursor: pointer; }
-        .profile-icon { background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-
-        .goal-bar { background-color: #333; color: white; text-align: center; padding: 15px; }
-        .goal-amount { font-size: 28px; font-weight: bold; }
-
-        /* New Green Savings Bar */
-        .savings-bar { background-color: #2ecc71; color: white; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; }
-
-        .stats-bar { background-color: #444; color: white; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 11px; }
-        .stats-bar span { color: #add8e6; font-weight: bold; }
-
-        /* Content & Accordion Lists */
-        .content { padding: 15px; flex-grow: 1; overflow-y: auto; }
-        .list-header { 
-            background: white; padding: 15px; border-radius: 8px; margin-top: 10px;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-weight: bold;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configuration for Tailwind CSS, if needed
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                'brand-light': '#add8e6',
+                'brand-dark': '#222',
+              }
+            }
+          }
         }
-        .list-content { display: none; background: #fafafa; padding: 10px; border-radius: 0 0 8px 8px; margin-bottom: 10px; border: 1px solid #eee; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 2px 5px; font-size: 14px; }
-        .del-btn-edit { color: #f0ad4e; }
-        .bill-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .btn-clear { width: 100%; padding: 8px; background: #f0ad4e; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold; }
-
-        /* Bill Card */
-        .bill-card { background: white; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .status-dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
-
-        /* Menu Overlay */
-        #menu-overlay, #profile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; }
-        .menu-content { background: #222; width: 90%; max-width: 400px; margin: 20px auto; padding: 20px; border-radius: 20px; color: white; position: relative; }
-        .close-x { position: absolute; top: 15px; right: 20px; color: #ff4444; font-size: 32px; cursor: pointer; line-height: 1; font-weight: bold; }
-        .input-group { margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        label { font-size: 11px; color: #add8e6; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .close-btn { text-align: center; margin-top: 20px; color: #ff4444; cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border-radius: 8px; border: none; margin-bottom: 8px; }
-        
-        .btn-save { width: 100%; padding: 15px; background: #add8e6; color: #222; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-csv { width: 100%; padding: 10px; background: #555; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; }
-        .profile-section { background: #333; padding: 15px; border-radius: 10px; margin-top: 20px; }
-
-        /* Auth Screen Styles */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #add8e6; z-index: 2000; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
-        .auth-container { background: white; width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
-        .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #777; }
-        .auth-tab.active { color: #333; border-bottom: 2px solid #333; }
-        .pass-wrapper { position: relative; width: 100%; }
-        .eye-icon { position: absolute; right: 12px; top: 10px; cursor: pointer; color: #777; }
-        .remember-me { display: flex; align-items: center; font-size: 13px; color: #555; margin-bottom: 15px; cursor: pointer; }
-        .remember-me input { width: auto; margin-right: 8px; margin-bottom: 0; }
-    </style>
-    <style>
-        /* Ad Space Placeholder */
-        .ad-space {
-            background: #e0e0e0;
-            border: 1px dashed #999;
-            padding: 20px;
-            margin: 20px 0; /* Add some space above and below */
-            text-align: center;
-            color: #777;
-            font-weight: bold;
-            border-radius: 8px;
+    </script>
+    <script>
+        // Immediately apply theme from localStorage to prevent FOUC
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
         }
-    </style>
-    <style>
-        /* Splash Screen Styles */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #add8e6; /* Same as header */
-            z-index: 3000; /* Higher than auth screen */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease-out;
-        }
-        .splash-logo {
-            width: 80%;
-            max-width: 400px; /* Allow the full logo to be visible */
-            height: auto;
-            /* The logo image itself has styling, so we don't need extra shadows or borders here */
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <div id="splash-screen">
-        <img src="logo.png" alt="App Logo" class="splash-logo">
+<body class="bg-gray-100 dark:bg-gray-900 h-screen flex flex-col overflow-hidden font-sans">
+    <div id="splash-screen" class="fixed top-0 left-0 w-full h-full bg-brand-light z-50 flex flex-col items-center justify-center transition-opacity duration-500 ease-out dark:bg-gray-800">
+        <img src="logo.png" alt="App Logo" class="w-4/5 max-w-xs h-auto">
+        <div class="w-1/2 max-w-xs bg-white/50 dark:bg-black/20 rounded-full h-2.5 mt-8">
+            <div id="loading-bar" class="bg-white h-2.5 rounded-full transition-all duration-[1400ms] ease-linear" style="width: 0%"></div>
+        </div>
     </div>
-    <div id="auth-screen">
-        <div class="auth-container">
-            <div class="auth-tabs">
-                <div class="auth-tab active" id="tab-login" onclick="switchAuth('login')">LOGIN</div>
-                <div class="auth-tab" id="tab-register" onclick="switchAuth('register')">REGISTER</div>
-            </div>
-            
-            <div id="auth-form-content">
-                <!-- Dynamic content via JavaScript -->
-            </div>
+    <div id="welcome-screen" class="hidden fixed top-0 left-0 w-full h-full bg-brand-light dark:bg-gray-800 z-40 flex-col items-center justify-center p-5">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md p-8 rounded-2xl shadow-lg text-center">
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">Welcome!</h2>
+            <p class="mb-4 text-gray-600 dark:text-gray-300">What should we call you?</p>
+            <input type="text" id="welcome-name" placeholder="Enter your name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-center mb-4 bg-transparent dark:text-white">
+            <button class="w-full py-3 bg-gray-800 dark:bg-brand-light dark:text-brand-dark text-white rounded-lg font-bold" onclick="startApp()">GET STARTED</button>
         </div>
     </div>
 
-    <header>
-        <div class="menu-btn" onclick="toggleMenu()">☰</div>
-        <div class="header-right" onclick="toggleProfile()">
-            <div class="user-hello" id="user-name">Hello!!!</div>
-            <div class="profile-icon">👤</div>
+    <header class="bg-brand-light dark:bg-gray-800 p-4 flex items-center justify-between">
+        <div class="text-3xl cursor-pointer text-white" onclick="toggleMenu()">☰</div>
+        <div class="flex items-center cursor-pointer" onclick="toggleProfile()">
+            <div class="text-gray-700 dark:text-gray-300 font-bold text-sm mr-2" id="user-name">Hello!!!</div>
+            <div class="bg-white dark:bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center text-lg shadow">👤</div>
         </div>
     </header>
 
-    <div class="goal-bar">
-        <p id="active-prof-label" style="font-size: 11px; opacity: 0.8;">Main Profile 🟢</p>
-        <div class="goal-amount" id="disp-goal">0</div>
+    <div class="bg-gray-800 dark:bg-gray-700 text-white text-center p-4">
+        <p id="active-prof-label" class="text-xs opacity-80">Main Profile 🟢</p>
+        <div class="text-3xl font-bold" id="disp-goal">0</div>
     </div>
 
-    <div class="savings-bar" id="disp-savings">
+    <div class="bg-green-500 text-white text-center p-2 text-sm font-bold" id="disp-savings">
         SAVINGS: $0
     </div>
 
-    <div class="stats-bar">
-        <div>TARGET LEFT: <span id="disp-left">$0</span></div>
-        <div>NEED PER DAY: <span id="disp-need">$0</span></div>
+    <div class="bg-gray-700 dark:bg-gray-600 text-white px-4 py-2 flex justify-between text-xs">
+        <div>TARGET LEFT: <span id="disp-left" class="text-brand-light font-bold">$0</span></div>
+        <div>NEED PER DAY: <span id="disp-need" class="text-brand-light font-bold">$0</span></div>
     </div>
 
-    <div class="content">
-        <div class="list-header" onclick="toggleList('earn-content')">
-            EARNINGS (TOTAL) <span id="total-earn">$0</span>
+    <div class="p-4 flex-grow overflow-y-auto dark:text-gray-300">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg mt-2 shadow-sm font-bold flex justify-between items-center">
+            <span class="cursor-pointer flex-grow" onclick="toggleList('earn-content')">EARNINGS (TOTAL) <span id="total-earn">$0</span></span>
+            <button onclick="openQuickAdd('income')" class="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold">+</button>
         </div>
-        <div id="earn-content" class="list-content"></div>
+        <div id="earn-content" class="hidden bg-gray-50 dark:bg-gray-700 p-2 border border-gray-200 dark:border-gray-600 rounded-b-lg mb-2"></div>
 
-        <div class="list-header" onclick="toggleList('gas-content')">
-            GAS (TOTAL) <span id="total-gas">$0</span>
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg mt-2 shadow-sm font-bold flex justify-between items-center">
+            <span class="cursor-pointer flex-grow" onclick="toggleList('gas-content')">GAS (TOTAL) <span id="total-gas">$0</span></span>
+            <button onclick="openQuickAdd('gas')" class="bg-yellow-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold">+</button>
         </div>
-        <div id="gas-content" class="list-content"></div>
+        <div id="gas-content" class="hidden bg-gray-50 dark:bg-gray-700 p-2 border border-gray-200 dark:border-gray-600 rounded-b-lg mb-2"></div>
 
-        <div class="list-header" onclick="toggleList('groc-content')">
-            GROCERY (TOTAL) <span id="total-groc">$0</span>
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg mt-2 shadow-sm font-bold flex justify-between items-center">
+            <span class="cursor-pointer flex-grow" onclick="toggleList('groc-content')">GROCERY (TOTAL) <span id="total-groc">$0</span></span>
+            <button onclick="openQuickAdd('grocery')" class="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold">+</button>
         </div>
-        <div id="groc-content" class="list-content"></div>
+        <div id="groc-content" class="hidden bg-gray-50 dark:bg-gray-700 p-2 border border-gray-200 dark:border-gray-600 rounded-b-lg mb-2"></div>
 
-        <div class="list-header" onclick="toggleList('bill-content')">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg mt-2 shadow-sm font-bold flex justify-between items-center cursor-pointer" onclick="toggleList('bill-content')">
             BILLS & PAYMENTS (TOTAL) <span id="disp-bill-total">$0</span>
         </div>
-        <div id="bill-content" class="list-content">
-            <div style="background-color: #d8cece; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #333;">
-                <div style="color: #ff4444;">PAID: <span id="disp-bill-paid">$0</span></div>
+        <div id="bill-content" class="hidden bg-gray-50 dark:bg-gray-700 p-2 border border-gray-200 dark:border-gray-600 rounded-b-lg mb-2">
+            <div class="bg-gray-200 dark:bg-gray-600 p-2 px-3 rounded-lg flex justify-between text-xs font-bold mb-2 text-gray-800 dark:text-gray-200">
+                <div class="text-red-500">PAID: <span id="disp-bill-paid">$0</span></div>
                 <div>REMAINING: <span id="disp-bill-remain">$0</span></div>
             </div>
             <div id="bill-container"></div>
         </div>
 
-        <div class="list-header" onclick="toggleList('credit-history-content')">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg mt-2 shadow-sm font-bold flex justify-between items-center cursor-pointer" onclick="toggleList('credit-history-content')">
             CREDIT HISTORY
         </div>
-        <div id="credit-history-content" class="list-content" style="padding: 0;"></div>
+        <div id="credit-history-content" class="hidden bg-gray-50 dark:bg-gray-700 p-0 border-gray-200 dark:border-gray-600 rounded-b-lg mb-2"></div>
 
-        <div class="ad-space">
+        <div class="bg-gray-200 dark:bg-gray-800 border border-dashed border-gray-400 dark:border-gray-600 p-5 my-5 text-center text-gray-600 dark:text-gray-400 font-bold rounded-lg">
             <p>Advertisement Space</p>
         </div>
 
     </div>
 
-    <div id="menu-overlay">
-        <div class="menu-content">
-            <div class="close-x" onclick="toggleMenu()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 20px;">COMMAND CENTER</h2>
+    <div id="menu-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-90 z-30 overflow-y-auto">
+        <div class="bg-brand-dark w-11/12 max-w-md mx-auto my-5 p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="toggleMenu()">&times;</div>
+            <h2 class="text-center text-xl font-bold mb-5">COMMAND CENTER</h2>
             
-            <div class="input-group">
-                <label>Set Achievement Goal</label>
-                <input type="number" id="in-goal" placeholder="e.g. 12000">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Set Achievement Goal</label>
+                <input type="number" id="in-goal" placeholder="e.g. 12000" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <div class="input-group">
-                <label>Add Income / Expense</label>
-                <select id="in-type">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Add Income / Expense</label>
+                <select id="in-type" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
                     <option value="income">Income / Earning</option>
                     <option value="gas">Gas</option>
                     <option value="grocery">Grocery</option>
                 </select>
-                <input type="number" id="in-amount" placeholder="Amount $">
-                <input type="date" id="in-date">
+                <div id="in-name-wrapper" class="hidden">
+                    <input type="text" id="in-name" placeholder="Item Name (Optional)" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                </div>
+                <input type="number" id="in-amount" placeholder="Amount $" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <input type="date" id="in-date" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <div class="input-group">
-                <label>New Bill</label>
-                <input type="text" id="in-bill-name" placeholder="Name">
-                <input type="number" id="in-bill-amt" placeholder="Amount">
-                <input type="date" id="in-bill-date">
-                <select id="in-bill-status">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">New Bill</label>
+                <input type="text" id="in-bill-name" placeholder="Name" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <input type="number" id="in-bill-amt" placeholder="Amount" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <input type="date" id="in-bill-date" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <select id="in-bill-status" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
                     <option value="unpaid">Mark as Unpaid (Red)</option>
                     <option value="paid">Mark as Paid (Green)</option>
                 </select>
-                <div id="bill-menu-list" style="margin-top: 10px; max-height: 120px; overflow-y: auto; background: #333; border-radius: 8px; padding: 5px;"></div>
+                <div id="bill-menu-list" class="mt-2 max-h-32 overflow-y-auto bg-gray-800 rounded-lg p-1"></div>
             </div>
 
-            <button class="btn-save" onclick="processData()">SAVE & UPDATE</button>
-            <button class="btn-csv" style="background: #2ecc71;" onclick="toggleReport()">VIEW REPORT</button>
-            <button class="btn-csv" style="background: #f0ad4e; color: white;" onclick="togglePayoffCalc()">PAYOFF CALCULATOR</button>
-            <button class="btn-csv" onclick="downloadCSV()">DOWNLOAD CSV REPORT</button>
+            <button class="w-full py-3 bg-brand-light text-brand-dark rounded-lg font-bold cursor-pointer" onclick="processData()">SAVE & UPDATE</button>
+            <button class="w-full py-2 bg-green-500 text-white rounded-lg mt-2 cursor-pointer" onclick="toggleReport()">VIEW REPORT</button>
+            <button class="w-full py-2 bg-yellow-500 text-white rounded-lg mt-2 cursor-pointer" onclick="togglePayoffCalc()">PAYOFF CALCULATOR</button>
+            <button class="w-full py-2 bg-gray-600 text-white rounded-lg mt-2 cursor-pointer" onclick="downloadCSV()">DOWNLOAD CSV REPORT</button>
 
-            <p class="close-btn" onclick="toggleMenu()">CLOSE MENU</p>
+            <p class="text-center mt-5 text-red-500 cursor-pointer uppercase text-xs font-bold" onclick="toggleMenu()">CLOSE MENU</p>
         </div>
     </div>
 
-    <div id="profile-overlay">
-        <div class="menu-content">
-            <div class="close-x" onclick="toggleProfile()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 20px;">PROFILE SETTINGS</h2>
-            <div class="profile-section">
-                <label>Display Name</label>
-                <input type="text" id="prof-name" placeholder="Change Name">
-                <label>Rename Current Profile</label>
-                <input type="text" id="prof-rename" placeholder="e.g. Vacation Goal">
-                <label>Password</label>
-                <input type="password" id="prof-pass" placeholder="••••••••">
-                <label>Active Account</label>
-                <select id="prof-active">
+    <div id="profile-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-90 z-30 overflow-y-auto">
+        <div class="bg-brand-dark w-11/12 max-w-md mx-auto my-5 p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="toggleProfile()">&times;</div>
+            <h2 class="text-center text-xl font-bold mb-5">PROFILE SETTINGS</h2>
+            <div class="bg-gray-800 p-4 rounded-lg mt-5">
+                <label class="text-xs text-brand-light uppercase block mb-1">Display Name</label>
+                <input type="text" id="prof-name" placeholder="Change Name" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <label class="text-xs text-brand-light uppercase block mb-1">Rename Current Profile</label>
+                <input type="text" id="prof-rename" placeholder="e.g. Vacation Goal" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
+                <label class="text-xs text-brand-light uppercase block mb-1">Active Account</label>
+                <select id="prof-active" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
                     <option>Main Profile 🟢</option>
                     <option>2nd Profile (Vacation/Goal)</option>
                 </select>
-                <button class="btn-save" style="margin-top: 10px;" onclick="processData()">UPDATE PROFILE</button>
-                <button class="btn-csv" style="background: #444;" onclick="logout()">LOGOUT</button>
-                <button class="btn-csv" style="background: #ff4444; margin-top: 20px;" onclick="resetProfile()">RESET ALL DATA</button>
+                <button class="w-full py-3 bg-brand-light text-brand-dark rounded-lg font-bold cursor-pointer mt-2" onclick="processData()">UPDATE PROFILE</button>
             </div>
-            <p class="close-btn" onclick="toggleProfile()">CLOSE PROFILE</p>
+            <div class="bg-gray-800 p-4 rounded-lg mt-5">
+                <label class="text-xs text-brand-light uppercase block mb-2">Appearance</label>
+                <div class="flex items-center justify-between">
+                    <span class="text-white">Dark Mode</span>
+                    <div id="theme-toggle" class="w-14 h-8 flex items-center bg-gray-600 rounded-full p-1 cursor-pointer">
+                        <div id="theme-toggle-dot" class="w-6 h-6 bg-white rounded-full shadow-md transform duration-300 ease-in-out"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mt-5">
+                <button class="w-full py-2 bg-red-600 text-white rounded-lg mt-5" onclick="resetProfile()">RESET ALL DATA</button>
+            </div>
+            <p class="text-center mt-5 text-red-500 cursor-pointer uppercase text-xs font-bold" onclick="toggleProfile()">CLOSE PROFILE</p>
         </div>
     </div>
 
-    <div id="report-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
-        <div class="menu-content" style="max-width: 600px; width: 95%;">
-            <div class="close-x" onclick="toggleReport()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 5px;">REPORT</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #333; padding: 8px; border-radius: 8px;">
-                <button onclick="changeReportMonth(-1)" style="background: #555; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">&lt; Prev</button>
-                <div id="report-month-display" style="font-weight: bold; font-size: 14px;"></div>
-                <button onclick="changeReportMonth(1)" style="background: #555; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Next &gt;</button>
+    <div id="report-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-90 z-30 overflow-y-auto">
+        <div class="bg-brand-dark w-11/12 max-w-2xl mx-auto my-5 p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="toggleReport()">&times;</div>
+            <h2 class="text-center text-xl font-bold mb-2">REPORT</h2>
+            <div class="flex justify-between items-center mb-4 bg-gray-800 p-2 rounded-lg">
+                <button onclick="changeReportMonth(-1)" class="bg-gray-600 text-white py-1 px-3 rounded cursor-pointer">&lt; Prev</button>
+                <div id="report-month-display" class="font-bold text-sm"></div>
+                <button onclick="changeReportMonth(1)" class="bg-gray-600 text-white py-1 px-3 rounded cursor-pointer">Next &gt;</button>
             </div>
-            <div style="background: white; color: black; padding: 10px; border-radius: 8px; font-size: 13px; overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <div class="bg-white text-black dark:bg-gray-700 dark:text-white p-2 rounded-lg text-sm overflow-x-auto">
+                <table class="w-full border-collapse text-left">
                     <thead>
-                        <tr style="border-bottom: 2px solid #333;">
-                            <th style="padding: 5px;">Date</th>
-                            <th style="padding: 5px;">Earning</th>
-                            <th style="padding: 5px;">Gas</th>
-                            <th style="padding: 5px;">Grocery</th>
-                            <th style="padding: 5px;">Paid Bill</th>
+                        <tr class="border-b-2 border-gray-800">
+                            <th class="p-1">Date</th>
+                            <th class="p-1">Earning</th>
+                            <th class="p-1">Gas</th>
+                            <th class="p-1">Grocery</th>
+                            <th class="p-1">Paid Bill</th>
                         </tr>
                     </thead>
                     <tbody id="report-table-body">
                     </tbody>
                 </table>
             </div>
-            <button class="btn-csv" style="background: #add8e6; color: #222; font-weight: bold; margin-top: 20px;" onclick="downloadCSV()">DOWNLOAD CSV</button>
-            <p class="close-btn" onclick="toggleReport()">CLOSE REPORT</p>
+            <button class="w-full py-2 bg-brand-light text-brand-dark font-bold rounded-lg mt-5" onclick="downloadCSV()">DOWNLOAD CSV</button>
+            <p class="text-center mt-5 text-red-500 cursor-pointer uppercase text-xs font-bold" onclick="toggleReport()">CLOSE REPORT</p>
         </div>
     </div>
 
-    <div id="payoff-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
-        <div class="menu-content" style="max-width: 450px; width: 95%;">
-            <div class="close-x" onclick="togglePayoffCalc()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 20px;">CREDIT PAYOFF CALCULATOR</h2>
+    <div id="payoff-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-90 z-30 overflow-y-auto">
+        <div class="bg-brand-dark w-11/12 max-w-md mx-auto my-5 p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="togglePayoffCalc()">&times;</div>
+            <h2 class="text-center text-xl font-bold mb-5">CREDIT PAYOFF CALCULATOR</h2>
             
-            <div class="input-group">
-                <label>Credit Account Name</label>
-                <input type="text" id="calc-credit-name" placeholder="e.g. Chase Sapphire">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Credit Account Name</label>
+                <input type="text" id="calc-credit-name" placeholder="e.g. Chase Sapphire" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <div class="input-group">
-                <label>Total Debt Amount ($)</label>
-                <input type="number" id="calc-debt-amt" placeholder="e.g. 5000">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Total Debt Amount ($)</label>
+                <input type="number" id="calc-debt-amt" placeholder="e.g. 5000" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <div class="input-group">
-                <label>Annual Interest Rate (%)</label>
-                <input type="number" id="calc-interest-rate" placeholder="e.g. 18.9">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Annual Interest Rate (%)</label>
+                <input type="number" id="calc-interest-rate" placeholder="e.g. 18.9" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <p style="text-align: center; font-size: 12px; color: #ccc; margin: 15px 0;">Monthly Payment is required. Payoff Time is optional for comparison.</p>
+            <p class="text-center text-xs text-gray-400 my-4">Monthly Payment is required. Payoff Time is optional for comparison.</p>
 
-            <div class="input-group">
-                <label>Your Monthly Payment ($)</label>
-                <input type="number" id="calc-monthly-payment" placeholder="e.g. 200">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Your Monthly Payment ($)</label>
+                <input type="number" id="calc-monthly-payment" placeholder="e.g. 200" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <div class="input-group">
-                <label>Optional: Target Payoff Time (Months)</label>
-                <input type="number" id="calc-payoff-months" placeholder="e.g. 24">
+            <div class="mb-4 pb-2 border-b border-gray-700">
+                <label class="text-xs text-brand-light uppercase block mb-1">Optional: Target Payoff Time (Months)</label>
+                <input type="number" id="calc-payoff-months" placeholder="e.g. 24" class="w-full p-2 rounded-lg border-none mb-2 bg-gray-700 text-white">
             </div>
 
-            <button class="btn-save" onclick="calculatePayoff()">CALCULATE</button>
+            <button class="w-full py-3 bg-brand-light text-brand-dark rounded-lg font-bold cursor-pointer" onclick="calculatePayoff()">CALCULATE</button>
 
-            <p class="close-btn" onclick="togglePayoffCalc()">CLOSE CALCULATOR</p>
+            <p class="text-center mt-5 text-red-500 cursor-pointer uppercase text-xs font-bold" onclick="togglePayoffCalc()">CLOSE CALCULATOR</p>
         </div>
     </div>
 
-    <div id="suggestion-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div class="menu-content" style="max-width: 450px; width: 100%;">
-            <div class="close-x" onclick="closeSuggestion()">&times;</div>
-            <h2 style="text-align: center; margin-bottom: 20px;">PAYOFF RESULT</h2>
-            <div id="suggestion-content" style="background: #333; color: white; padding: 15px; border-radius: 10px; font-size: 14px; text-align: left; line-height: 1.6;">
+    <div id="suggestion-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 z-40 items-center justify-center p-5">
+        <div class="bg-brand-dark w-full max-w-md p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="closeSuggestion()">&times;</div>
+            <h2 class="text-center text-xl font-bold mb-5">PAYOFF RESULT</h2>
+            <div id="suggestion-content" class="bg-gray-800 text-white p-4 rounded-lg text-sm text-left leading-relaxed">
                 <!-- Content will be injected by JS -->
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn-save" style="flex: 1; background-color: #2ecc71;" onclick="savePayoff()">SAVE</button>
-                <p class="close-btn" style="flex: 1; margin: 0; padding: 15px; background: #444; border-radius: 10px;" onclick="closeSuggestion()">CLOSE</p>
+            <div class="flex gap-4 mt-5">
+                <button class="flex-1 py-3 bg-green-600 rounded-lg font-bold" onclick="savePayoff()">SAVE</button>
+                <p class="flex-1 text-center m-0 py-3 bg-gray-600 rounded-lg cursor-pointer" onclick="closeSuggestion()">CLOSE</p>
             </div>
+        </div>
+    </div>
+
+    <div id="quick-add-overlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 z-40 items-center justify-center p-5">
+        <div class="bg-brand-dark w-full max-w-sm p-5 rounded-2xl text-white relative">
+            <div class="absolute top-4 right-5 text-red-500 text-4xl cursor-pointer leading-none font-bold" onclick="closeQuickAdd()">&times;</div>
+            <h2 id="quick-add-title" class="text-center text-xl font-bold mb-5">Add Entry</h2>
+            <div id="quick-add-name-wrapper" class="hidden mb-4">
+                <label class="text-xs text-brand-light uppercase block mb-1">Item Name (Optional)</label>
+                <input type="text" id="quick-add-name" placeholder="e.g. Milk, Bread" class="w-full p-2 rounded-lg border-none bg-gray-700 text-white">
+            </div>
+            <div class="mb-4">
+                <label class="text-xs text-brand-light uppercase block mb-1">Amount ($)</label>
+                <input type="number" id="quick-add-amount" placeholder="Amount" class="w-full p-2 rounded-lg border-none bg-gray-700 text-white">
+            </div>
+            <div class="mb-4">
+                <label class="text-xs text-brand-light uppercase block mb-1">Date</label>
+                <input type="date" id="quick-add-date" class="w-full p-2 rounded-lg border-none bg-gray-700 text-white">
+            </div>
+            <button class="w-full py-3 bg-brand-light text-brand-dark rounded-lg font-bold cursor-pointer" onclick="processQuickAdd()">ADD</button>
         </div>
     </div>
 
@@ -338,10 +293,10 @@
         let reportDate = new Date(); // For monthly report navigation
         let lastPayoffResult = null; // To hold the latest payoff calculation for saving
         let editingCreditHistoryId = null; // To track which credit history item is being edited
+        let quickAddType = null; // To track which transaction type is being added via the quick-add modal
         // Initialize data from localStorage or defaults
         let appData = JSON.parse(localStorage.getItem('budgetData')) || {
             userName: "User",
-            password: "",
             activeProfileIndex: 0,
             profiles: [
                 { name: "Main Profile 🟢", goal: 0, transactions: [], bills: [], creditHistory: [] },
@@ -353,7 +308,6 @@
         if (!appData.profiles) {
             appData = {
                 userName: appData.userName || "User",
-                password: appData.password || "",
                 activeProfileIndex: 0,
                 profiles: [
                     { name: "Main Profile 🟢", goal: appData.goal || 0, transactions: appData.transactions || [], bills: appData.bills || [], creditHistory: appData.creditHistory || [] },
@@ -363,125 +317,57 @@
             localStorage.setItem('budgetData', JSON.stringify(appData));
         }
 
-        // Auth Logic
-        let authState = 'login';
-
-        function switchAuth(type) {
-            authState = type;
-            document.getElementById('tab-login').classList.toggle('active', type === 'login');
-            document.getElementById('tab-register').classList.toggle('active', type === 'register');
-            renderAuthForm();
-        }
-
-        function renderAuthForm() {
-            const container = document.getElementById('auth-form-content');
-            if (authState === 'login') {
-                container.innerHTML = `
-                    <input type="email" id="auth-email" placeholder="Email Address" style="border: 1px solid #ddd">
-                    <div class="pass-wrapper">
-                        <input type="password" id="auth-pass" placeholder="Password" style="border: 1px solid #ddd">
-                        <span class="eye-icon" onclick="togglePass('auth-pass')">👁️</span>
-                    </div>
-                    <label class="remember-me">
-                        <input type="checkbox" id="auth-remember"> Remember this device
-                    </label>
-                    <button class="btn-save" style="background: #333; color: white;" onclick="handleLogin()">SIGN IN</button>
-                `;
-            } else {
-                container.innerHTML = `
-                    <input type="text" id="reg-name" placeholder="Full Name" style="border: 1px solid #ddd">
-                    <input type="email" id="reg-email" placeholder="Email Address" style="border: 1px solid #ddd">
-                    <div class="pass-wrapper">
-                        <input type="password" id="reg-pass" placeholder="Password" style="border: 1px solid #ddd">
-                        <span class="eye-icon" onclick="togglePass('reg-pass')">👁️</span>
-                    </div>
-                    <button class="btn-save" style="background: #333; color: white;" onclick="handleRegister()">CREATE ACCOUNT</button>
-                `;
-            }
-        }
-
-        function togglePass(id) {
-            const input = document.getElementById(id);
-            input.type = input.type === 'password' ? 'text' : 'password';
-        }
-
-        function handleRegister() {
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-
-            if (!name || !email || !pass) return alert("Please fill all fields");
-            
-            let users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            if (users.some(u => u.email === email)) return alert("Email already exists");
-
-            users.push({ name, email, pass });
-            localStorage.setItem('registeredUsers', JSON.stringify(users));
-            
-            // Auto-initialize new user app data if first time
-            appData.userName = name;
-            appData.password = pass; // Store for profile legacy compat
+        function startApp() {
+            const nameInput = document.getElementById('welcome-name').value;
+            appData.userName = nameInput.trim() || "User";
             saveData();
-            
-            alert("Registration successful! Please login.");
-            switchAuth('login');
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('flex', 'flex-col');
         }
 
-        function handleLogin() {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const remember = document.getElementById('auth-remember').checked;
-
-            const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            const user = users.find(u => u.email === email && u.pass === pass);
-
-            if (user) {
-                appData.userName = user.name;
-                appData.password = user.pass;
-                saveData();
-                
-                if (remember) {
-                    localStorage.setItem('budget_session', 'active');
-                } else {
-                    sessionStorage.setItem('budget_session', 'active');
-                }
-                
-                document.getElementById('auth-screen').style.display = 'none';
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
             } else {
-                alert("Invalid email or password");
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
             }
+            // Re-render to update the toggle's visual state
+            renderThemeToggle();
         }
 
-        function logout() {
-            localStorage.removeItem('budget_session');
-            sessionStorage.removeItem('budget_session');
-            location.reload();
-        }
 
         function toggleMenu() {
             const menu = document.getElementById('menu-overlay');
-            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('block');
         }
 
         function toggleProfile() {
             const profile = document.getElementById('profile-overlay');
-            profile.style.display = (profile.style.display === 'flex') ? 'none' : 'flex';
+            profile.classList.toggle('hidden');
+            profile.classList.toggle('block');
         }
 
         function toggleList(id) {
             const el = document.getElementById(id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+            el.classList.toggle('hidden');
+            el.classList.toggle('block');
         }
 
         function toggleReport() {
             const report = document.getElementById('report-overlay');
-            if (report.style.display === 'flex') {
-                report.style.display = 'none';
-                reportDate = new Date(); // Reset to current month on close
-            } else {
+            const isHidden = report.classList.contains('hidden');
+
+            if (isHidden) {
                 renderReportTable();
-                report.style.display = 'flex';
-                document.getElementById('menu-overlay').style.display = 'none';
+                report.classList.remove('hidden');
+                document.getElementById('menu-overlay').classList.add('hidden');
+            } else {
+                report.classList.add('hidden');
+                reportDate = new Date(); // Reset to current month on close
             }
         }
 
@@ -492,16 +378,60 @@
 
         function togglePayoffCalc() {
             const calc = document.getElementById('payoff-overlay');
-            calc.style.display = (calc.style.display === 'flex') ? 'none' : 'flex';
-            if (calc.style.display === 'none') {
+            const isHidden = calc.classList.contains('hidden');
+
+            if (isHidden) {
+                calc.classList.remove('hidden');
+                document.getElementById('menu-overlay').classList.add('hidden');
+            } else {
+                calc.classList.add('hidden');
                 editingCreditHistoryId = null; // Reset editing state when closing
-                document.querySelector('#payoff-overlay .btn-save').innerText = 'CALCULATE'; // Reset button text
+                document.querySelector('#payoff-overlay button').innerText = 'CALCULATE'; // Reset button text
             }
-            document.getElementById('menu-overlay').style.display = 'none';
         }
 
         function closeSuggestion() {
-            document.getElementById('suggestion-overlay').style.display = 'none';
+            const overlay = document.getElementById('suggestion-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+
+        function openQuickAdd(type) {
+            quickAddType = type;
+            const title = type.charAt(0).toUpperCase() + type.slice(1);
+            document.getElementById('quick-add-title').innerText = `Add ${title}`;
+            document.getElementById('quick-add-name').value = '';
+            document.getElementById('quick-add-amount').value = '';
+            document.getElementById('quick-add-date').value = new Date().toISOString().split('T')[0]; // Set to today
+            const overlay = document.getElementById('quick-add-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            // Show name field only for grocery
+            const nameWrapper = document.getElementById('quick-add-name-wrapper');
+            if (type === 'grocery') {
+                nameWrapper.classList.remove('hidden');
+            } else {
+                nameWrapper.classList.add('hidden');
+            }
+        }
+
+        function closeQuickAdd() {
+            const overlay = document.getElementById('quick-add-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            quickAddType = null;
+        }
+
+        function processQuickAdd() {
+            const amount = parseFloat(document.getElementById('quick-add-amount').value);
+            const date = document.getElementById('quick-add-date').value;
+            const name = document.getElementById('quick-add-name').value;
+            if (!quickAddType || !amount || !date) return alert("Please fill in both amount and date.");
+            const newTransaction = { id: Date.now(), type: quickAddType, amount, date, name: name || null };
+            appData.profiles[appData.activeProfileIndex].transactions.push(newTransaction);
+            saveData();
+            closeQuickAdd();
         }
 
 
@@ -524,8 +454,10 @@
             const amount = parseFloat(document.getElementById('in-amount').value);
             const type = document.getElementById('in-type').value;
             const date = document.getElementById('in-date').value;
+            const name = document.getElementById('in-name').value;
             if (amount && date) {
-                currentProf.transactions.push({ id: Date.now(), type, amount, date });
+                const transaction = { id: Date.now(), type, amount, date, name: (type === 'grocery' ? name : null) };
+                currentProf.transactions.push(transaction);
                 document.getElementById('in-amount').value = '';
             }
 
@@ -552,17 +484,13 @@
                 document.getElementById('prof-rename').value = '';
             }
 
-            // Update Password
-            const newPass = document.getElementById('prof-pass').value;
-            if(newPass) appData.password = newPass;
-
             // Update Active Profile
             const profSelect = document.getElementById('prof-active');
             appData.activeProfileIndex = profSelect.selectedIndex;
 
             saveData();
-            document.getElementById('menu-overlay').style.display = 'none';
-            document.getElementById('profile-overlay').style.display = 'none';
+            document.getElementById('menu-overlay').classList.add('hidden');
+            document.getElementById('profile-overlay').classList.add('hidden');
         }
 
         function sanitize(str) {
@@ -571,18 +499,31 @@
             return div.innerHTML;
         }
 
+        function renderThemeToggle() {
+            const toggle = document.getElementById('theme-toggle');
+            const dot = document.getElementById('theme-toggle-dot');
+            if (localStorage.getItem('theme') === 'dark') {
+                dot.style.transform = 'translateX(1.5rem)';
+            } else {
+                dot.style.transform = 'translateX(0)';
+            }
+        }
+
         function render() {
             const currentProf = appData.profiles[appData.activeProfileIndex];
             if (!currentProf.creditHistory) currentProf.creditHistory = []; // Ensure creditHistory exists
 
             // Update Header/Goal
-            document.getElementById('user-name').innerText = "Hello!!! " + appData.userName;
+            document.getElementById('user-name').innerText = "Hello, " + appData.userName + "!";
             document.getElementById('active-prof-label').innerText = currentProf.name;
             
             // Pre-fill profile fields
             document.getElementById('prof-name').value = appData.userName;
             document.getElementById('prof-active').selectedIndex = appData.activeProfileIndex;
             document.getElementById('disp-goal').innerText = currentProf.goal.toLocaleString();
+
+            // Render theme toggle state
+            renderThemeToggle();
 
             // Calculate Totals
             const totals = { income: 0, gas: 0, grocery: 0, bills: 0, paidBills: 0, unpaidBills: 0 };
@@ -592,19 +533,19 @@
             currentProf.transactions.forEach(t => {
                 totals[t.type] += t.amount;
                 lists[t.type] += `
-                    <div class="history-item">
-                        <span>${t.date}</span>
-                        <div style="display:flex; align-items:center;">
+                    <div class="flex justify-between items-center text-sm py-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="truncate pr-2">${t.name ? sanitize(t.name) : t.date}</span>
+                        <div class="flex items-center">
                             <span>$${t.amount}</span>
-                            <span class="del-btn" onclick="deleteTransaction(${t.id})">✕</span>
+                            <span class="text-red-500 cursor-pointer font-bold ml-2 p-1 text-base" onclick="deleteTransaction(${t.id})">✕</span>
                         </div>
                     </div>`;
             });
 
             // Add Clear buttons if there are transactions
-            if (currentProf.transactions.some(t => t.type === 'income')) lists.income += `<button class="btn-clear" onclick="clearTransactions('income')">Clear Earnings</button>`;
-            if (currentProf.transactions.some(t => t.type === 'gas')) lists.gas += `<button class="btn-clear" onclick="clearTransactions('gas')">Clear Gas</button>`;
-            if (currentProf.transactions.some(t => t.type === 'grocery')) lists.grocery += `<button class="btn-clear" onclick="clearTransactions('grocery')">Clear Grocery</button>`;
+            if (currentProf.transactions.some(t => t.type === 'income')) lists.income += `<button class="w-full p-2 bg-yellow-500 text-white rounded-lg mt-2 cursor-pointer font-bold text-sm" onclick="clearTransactions('income')">Clear Earnings</button>`;
+            if (currentProf.transactions.some(t => t.type === 'gas')) lists.gas += `<button class="w-full p-2 bg-yellow-500 text-white rounded-lg mt-2 cursor-pointer font-bold text-sm" onclick="clearTransactions('gas')">Clear Gas</button>`;
+            if (currentProf.transactions.some(t => t.type === 'grocery')) lists.grocery += `<button class="w-full p-2 bg-yellow-500 text-white rounded-lg mt-2 cursor-pointer font-bold text-sm" onclick="clearTransactions('grocery')">Clear Grocery</button>`;
 
 
             // Process Bills
@@ -628,39 +569,41 @@
                 const isPaid = b.paid === true;
                 const dotColor = isPaid ? '#2ecc71' : '#ff4444';
                 
-                // Calculate days left
+                // Calculate due date display
                 let dueDisplay = 'No Date';
-                if (b.date) {
+                if (isPaid) {
+                    dueDisplay = 'Paid';
+                } else if (b.date) {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
                     const dueDate = new Date(b.date + 'T00:00:00');
                     const diffTime = dueDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
+
                     if (diffDays === 0) dueDisplay = 'Today';
                     else if (diffDays > 0) dueDisplay = `${diffDays} days left`;
                     else dueDisplay = `${Math.abs(diffDays)} days overdue`;
                 }
 
                 billHtmlHome += `
-                    <div class="bill-card" style="font-size: 13px;">
-                        <div onclick="toggleBillStatus(${b.id})" style="cursor:pointer; flex: 1; display: flex; align-items: center;">
-                            <span class="status-dot" style="background: ${dotColor}; margin-right: 10px;"></span> 
-                            <span class="bill-name">${sanitize(b.name)}</span>
+                    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg mt-2 flex justify-between items-center text-sm">
+                        <div onclick="toggleBillStatus(${b.id})" class="cursor-pointer flex-1 flex items-center">
+                            <span class="h-3 w-3 rounded-full inline-block mr-3" style="background-color: ${dotColor};"></span> 
+                            <span class="whitespace-nowrap overflow-hidden overflow-ellipsis">${sanitize(b.name)}</span>
                         </div>
-                        <div style="flex: 1; text-align: center; color: #777; font-size: 11px;">
+                        <div class="flex-1 text-center text-gray-500 dark:text-gray-400 text-xs ${isPaid ? 'text-green-500 font-bold' : ''}">
                             ${dueDisplay}
                         </div>
-                        <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; font-weight: bold;">
+                        <div class="flex-1 flex justify-end items-center font-bold">
                             $${b.amount.toLocaleString()}
-                            <span class="del-btn" onclick="deleteBill(${b.id})">✕</span>
+                            <span class="text-red-500 cursor-pointer font-bold ml-2 p-1 text-base" onclick="deleteBill(${b.id})">✕</span>
                         </div>
                     </div>`;
 
                 billHtmlMenu += `
-                    <div style="display:flex; justify-content:space-between; font-size:11px; padding:5px; border-bottom:1px solid #444; align-items:center;">
+                    <div class="flex justify-between text-xs p-1 border-b border-gray-700 items-center">
                         <span>${sanitize(b.name)} ($${b.amount})</span>
-                        <span onclick="toggleBillStatus(${b.id})" style="color:${dotColor}; cursor:pointer; font-weight:bold; font-size: 9px; text-transform: uppercase;">
+                        <span onclick="toggleBillStatus(${b.id})" class="cursor-pointer font-bold text-xs uppercase" style="color:${dotColor};">
                             ${isPaid ? 'Paid' : 'Unpaid'}
                         </span>
                     </div>`;
@@ -670,23 +613,23 @@
             let creditHistoryHtml = '';
             currentProf.creditHistory.forEach(c => {
                 creditHistoryHtml += `
-                    <div class="bill-card" style="flex-direction: column; align-items: stretch; font-size: 12px; margin: 10px; padding: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px;">
+                    <div class="bg-white dark:bg-gray-800 flex flex-col items-stretch text-xs m-2 p-3 rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center font-bold mb-2">
                             <span>${sanitize(c.name)}</span>
                             <div>
-                                <span class="del-btn del-btn-edit" onclick="editCreditHistory(${c.id})">✎</span>
-                                <span class="del-btn" onclick="deleteCreditHistory(${c.id})">✕</span>
+                                <span class="text-yellow-500 cursor-pointer font-bold p-1 text-base" onclick="editCreditHistory(${c.id})">✎</span>
+                                <span class="text-red-500 cursor-pointer font-bold ml-1 p-1 text-base" onclick="deleteCreditHistory(${c.id})">✕</span>
                             </div>
                         </div>
-                        <div style="line-height: 1.6;">
+                        <div class="leading-relaxed">
                             Original Debt: <b>$${c.debtAmount.toLocaleString()}</b><br>
                             Monthly Payment: <b>$${c.monthlyPayment.toLocaleString()}</b><br>
                             Payoff Time: <b>${c.payoffTime}</b><br>
-                            Total Interest: <b>$${c.totalInterest.toLocaleString()}</b><br>
-                            <small style="color: #777;">Saved on: ${c.savedDate}</small>
+                            Total Interest: <b>$${c.totalInterest.toLocaleString()}</b>
+                            <small class="block text-gray-500 dark:text-gray-400 mt-1">Saved on: ${c.savedDate}</small>
                         </div>
                         ${c.suggestion ? `
-                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; color: #f0ad4e; font-weight: bold;">
+                            <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 text-yellow-600 font-bold">
                                 Suggestion: ${c.suggestion}
                             </div>
                         ` : ''}
@@ -707,8 +650,8 @@
             document.getElementById('gas-content').innerHTML = lists.gas || 'No data';
             document.getElementById('groc-content').innerHTML = lists.grocery || 'No data';
             document.getElementById('bill-container').innerHTML = billHtmlHome || 'No bills added';
-            document.getElementById('bill-menu-list').innerHTML = billHtmlMenu || '<p style="font-size:10px; color:#777; text-align:center;">No bills yet</p>';
-            document.getElementById('credit-history-content').innerHTML = creditHistoryHtml || '<p style="font-size:11px; color:#777; text-align:center; padding: 15px;">No credit history saved.</p>';
+            document.getElementById('bill-menu-list').innerHTML = billHtmlMenu || '<p class="text-xs text-gray-500 text-center">No bills yet</p>';
+            document.getElementById('credit-history-content').innerHTML = creditHistoryHtml || '<p class="text-xs text-gray-500 text-center p-4">No credit history saved.</p>';
 
             // Calculations
             const savings = totals.income - (totals.gas + totals.grocery + totals.bills);
@@ -744,7 +687,7 @@
             saveData();
             // Hide the list content after clearing
             const contentId = (type === 'income' ? 'earn' : type) + '-content';
-            document.getElementById(contentId).style.display = 'none';
+            document.getElementById(contentId).classList.add('hidden');
         }
 
         function deleteTransaction(id) {
@@ -769,7 +712,7 @@
             document.getElementById('calc-payoff-months').value = creditItem.payoffMonths || '';
 
             // Change button text to indicate an update
-            document.querySelector('#payoff-overlay .btn-save').innerText = 'RE-CALCULATE & UPDATE';
+            document.querySelector('#payoff-overlay button.bg-brand-light').innerText = 'RE-CALCULATE & UPDATE';
 
             togglePayoffCalc();
         }
@@ -843,16 +786,16 @@
             const reportData = generateReportData(reportDate);
             let html = '';
             reportData.forEach(row => {
-                html += `<tr style="border-bottom: 1px solid #ccc;">
-                    <td style="padding: 5px;">${row.date}</td>
-                    <td style="padding: 5px;">${row.earn}</td>
-                    <td style="padding: 5px;">${row.gas}</td>
-                    <td style="padding: 5px;">${row.grocery}</td>
-                    <td style="padding: 5px;">${row.paidBill}</td>
+                html += `<tr class="border-b border-gray-300">
+                    <td class="p-1">${row.date}</td>
+                    <td class="p-1">${row.earn}</td>
+                    <td class="p-1">${row.gas}</td>
+                    <td class="p-1">${row.grocery}</td>
+                    <td class="p-1">${row.paidBill}</td>
                 </tr>`;
             });
             if (reportData.length === 0) {
-                html = '<tr><td colspan="5" style="text-align:center; padding: 10px;">No data available</td></tr>';
+                html = '<tr><td colspan="5" class="text-center p-3">No data available</td></tr>';
             }
             document.getElementById('report-table-body').innerHTML = html;
         }
@@ -923,18 +866,18 @@
             if (payoffMonths && payoffMonths > 0) {
                 const requiredPayment = P * (r * Math.pow(1 + r, payoffMonths)) / (Math.pow(1 + r, payoffMonths) - 1);
                 const goalTotalInterest = (requiredPayment * payoffMonths) - P;
-                const suggestionText = `To pay off in ${payoffMonths} months, pay $${requiredPayment.toFixed(2)}/mo.`;
+                const suggestionText = `To pay off in ${payoffMonths} months, you would need to pay $${requiredPayment.toFixed(2)}/mo.`;
                 payoffResultData.suggestion = suggestionText;
-                resultHTML += `<hr style="border-color: #555; margin: 10px 0;"><b style="color: #f0ad4e;">Goal Comparison:</b><br>${suggestionText}<br>Total interest paid would be <b>$${goalTotalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.`;
+                resultHTML += `<hr class="border-gray-600 my-3"><b class="text-yellow-400">Goal Comparison:</b><br>${suggestionText}<br>Total interest paid would be <b>$${goalTotalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.`;
             } else if (monthlyPayment > P * r) {
                 // Show the "pay off 1 year faster" suggestion only if the optional field is empty and the debt is payable.
                 const n = -Math.log(1 - (r * P) / monthlyPayment) / Math.log(1 + r);
                 const fasterN = n - 12;
                 if (fasterN > 0) {
                     const fasterPayment = P * (r * Math.pow(1 + r, fasterN)) / (Math.pow(1 + r, fasterN) - 1);
-                    const suggestionText = `To pay off 1 year faster, pay $${fasterPayment.toFixed(2)}/mo.`;
+                    const suggestionText = `To pay this off 1 year faster, you would need to pay $${fasterPayment.toFixed(2)}/mo.`;
                     payoffResultData.suggestion = suggestionText;
-                    resultHTML += `<hr style="border-color: #555; margin: 10px 0;"><b style="color: #f0ad4e;">Suggestion:</b><br>${suggestionText}`;
+                    resultHTML += `<hr class="border-gray-600 my-3"><b class="text-yellow-400">Suggestion:</b><br>${suggestionText}`;
                 }
             }
 
@@ -944,7 +887,8 @@
             if (payoffResultData.payoffTime) { // Only make it saveable if the calculation was successful
                 lastPayoffResult = payoffResultData;
             }
-            suggestionOverlay.style.display = 'flex';
+            suggestionOverlay.classList.remove('hidden');
+            suggestionOverlay.classList.add('flex');
         }
 
         function savePayoff() {
@@ -975,21 +919,58 @@
 
         window.onload = function() {
             const splash = document.getElementById('splash-screen');
-            const isLoggedIn = localStorage.getItem('budget_session') || sessionStorage.getItem('budget_session');
-            
-            // Hide splash screen after 3 seconds
+            const loadingBar = document.getElementById('loading-bar');
+            const isFirstTime = !localStorage.getItem('budgetData');
+
+            // Setup theme toggle listener
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+            // Setup listener for grocery name input in command center
+            document.getElementById('in-type').addEventListener('change', function() {
+                const nameWrapper = document.getElementById('in-name-wrapper');
+                if (this.value === 'grocery') {
+                    nameWrapper.classList.remove('hidden');
+                } else {
+                    nameWrapper.classList.add('hidden');
+                }
+            });
+
+            // Start loading bar animation
+            setTimeout(() => { loadingBar.style.width = '100%'; }, 100);
+
+            // Hide splash screen after animation
             setTimeout(() => {
                 splash.style.opacity = '0';
-                // Remove from DOM after transition
-                setTimeout(() => splash.style.display = 'none', 500); 
-            }, 3000);
+                setTimeout(() => splash.classList.add('hidden'), 500); 
+            }, 1500);
 
-            if (!isLoggedIn) {
-                document.getElementById('auth-screen').style.display = 'flex';
-                renderAuthForm();
-            } else {
+            if (isFirstTime) {
+                // If it's the first time, wait for splash to hide, then show welcome screen
+                setTimeout(() => {
+                    const welcome = document.getElementById('welcome-screen');
+                    welcome.classList.remove('hidden');
+                    welcome.classList.add('flex');
+                }, 1800); // Wait for splash to fade
             }
-            render();
+            render(); // Render main app data regardless
+
+            // Check for monthly bill reset
+            const today = new Date();
+            const currentMonthYear = `${today.getFullYear()}-${today.getMonth()}`;
+            const lastReset = localStorage.getItem('lastBillResetMonth');
+
+            if (currentMonthYear !== lastReset) {
+                console.log("New month detected. Resetting bill statuses to unpaid.");
+                appData.profiles.forEach(profile => {
+                    if (profile.bills && profile.bills.length > 0) {
+                        profile.bills.forEach(bill => {
+                            bill.paid = false;
+                        });
+                    }
+                });
+                localStorage.setItem('lastBillResetMonth', currentMonthYear);
+                saveData(); // Save the changes and re-render
+            }
         };
     </script>
 </body>
