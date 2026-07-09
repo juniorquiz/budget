@@ -144,6 +144,10 @@
                     <option value="unpaid">Mark as Unpaid (Red)</option>
                     <option value="paid">Mark as Paid (Green)</option>
                 </select>
+                <div class="flex items-center mt-2">
+                    <input type="checkbox" id="in-bill-recurring" class="w-4 h-4 mr-2 bg-gray-700 border-gray-600" checked>
+                    <label for="in-bill-recurring" class="text-sm">Recurring Bill (resets monthly)</label>
+                </div>
                 <div id="bill-menu-list" class="mt-2 max-h-32 overflow-y-auto bg-gray-800 rounded-lg p-1"></div>
             </div>
 
@@ -466,8 +470,9 @@
             const bAmt = parseFloat(document.getElementById('in-bill-amt').value);
             const bDate = document.getElementById('in-bill-date').value;
             const bStatus = document.getElementById('in-bill-status').value === 'paid';
+            const bRecurring = document.getElementById('in-bill-recurring').checked;
             if (bName && bAmt) {
-                currentProf.bills.push({ id: Date.now(), name: bName, amount: bAmt, date: bDate, paid: bStatus });
+                currentProf.bills.push({ id: Date.now(), name: bName, amount: bAmt, date: bDate, paid: bStatus, recurring: bRecurring });
                 document.getElementById('in-bill-name').value = '';
                 document.getElementById('in-bill-amt').value = '';
                 document.getElementById('in-bill-status').value = 'unpaid';
@@ -568,6 +573,7 @@
                 }
                 const isPaid = b.paid === true;
                 const dotColor = isPaid ? '#2ecc71' : '#ff4444';
+                const recurringIcon = b.recurring ? '🔄' : '';
                 
                 // Calculate due date display
                 let dueDisplay = 'No Date';
@@ -589,7 +595,7 @@
                     <div class="bg-white dark:bg-gray-800 p-3 rounded-lg mt-2 flex justify-between items-center text-sm">
                         <div onclick="toggleBillStatus(${b.id})" class="cursor-pointer flex-1 flex items-center">
                             <span class="h-3 w-3 rounded-full inline-block mr-3" style="background-color: ${dotColor};"></span> 
-                            <span class="whitespace-nowrap overflow-hidden overflow-ellipsis">${sanitize(b.name)}</span>
+                            <span class="whitespace-nowrap overflow-hidden overflow-ellipsis">${sanitize(b.name)} ${recurringIcon}</span>
                         </div>
                         <div class="flex-1 text-center text-gray-500 dark:text-gray-400 text-xs ${isPaid ? 'text-green-500 font-bold' : ''}">
                             ${dueDisplay}
@@ -964,7 +970,9 @@
                 appData.profiles.forEach(profile => {
                     if (profile.bills && profile.bills.length > 0) {
                         profile.bills.forEach(bill => {
-                            bill.paid = false;
+                            if (bill.recurring) {
+                                bill.paid = false;
+                            }
                         });
                     }
                 });
